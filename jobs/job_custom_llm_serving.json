@@ -1,0 +1,39 @@
+{
+  "name": "deploy-llama31-8b-bnb4-vllm",
+  "max_concurrent_runs": 1,
+  "queue": {
+    "enabled": true
+  },
+  "tasks": [
+    {
+      "task_key": "deploy",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/<your-user>/llama31-vllm/deploy_llama31_8b_bnb4",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "catalog": "<catalog>",
+          "schema": "<schema>",
+          "model_name": "llama31_8b_bnb4",
+          "endpoint": "llama31-8b-bnb4",
+          "hf_repo": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
+          "workload_type": "GPU_LARGE",
+          "smoke_test": "true",
+          "scale_to_zero": "false"
+        }
+      },
+      "compute": {
+        "hardware_accelerator": "GPU_1xA10"
+      },
+      "timeout_seconds": 0,
+      "environment_key": "std_v6_gpu"
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "std_v6_gpu",
+      "spec": {
+        "environment_version": "6"
+      }
+    }
+  ]
+}

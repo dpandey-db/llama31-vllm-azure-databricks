@@ -1,0 +1,36 @@
+{
+  "name": "deploy-llama31-8b-bnb4-pyfunc",
+  "max_concurrent_runs": 1,
+  "queue": {
+    "enabled": true
+  },
+  "tasks": [
+    {
+      "task_key": "deploy",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/<your-user>/llama31-vllm/deploy_llama31_8b_pyfunc",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "catalog": "<catalog>",
+          "schema": "<schema>",
+          "model_name": "llama31_8b_bnb4_pyfunc",
+          "endpoint": "llama31-8b-bnb4-pyfunc",
+          "hf_repo": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
+          "workload_type": "GPU_LARGE",
+          "vllm_version": "0.24.0",
+          "scale_to_zero": "false"
+        }
+      },
+      "timeout_seconds": 0,
+      "environment_key": "std_v6_cpu"
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "std_v6_cpu",
+      "spec": {
+        "environment_version": "6"
+      }
+    }
+  ]
+}
