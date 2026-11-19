@@ -440,7 +440,9 @@ else:
 import numpy as np, pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
-GEN_TOKENS = 256
+# Same shape as the chat-route benchmark: 1/4/8/16 users, max(8, 2 x users) requests, 200 output tokens.
+GEN_TOKENS = 200
+CONCURRENCY_LEVELS = [1, 4, 8, 16]
 PROMPTS = [
     "Explain vector databases to a data engineer in 4 sentences.",
     "Write a short Python function that reverses a linked list.",
@@ -457,7 +459,8 @@ def one_call(prompt):
     r = client.completions.create(model=ENDPOINT_NAME, prompt=fmt(prompt), max_tokens=GEN_TOKENS, temperature=0.7)
     return time.perf_counter() - t0, r.usage.completion_tokens
 
-def run_bench(concurrency, n_requests=16):
+def run_bench(concurrency, n_requests=None):
+    n_requests = n_requests or max(8, 2 * concurrency)
     prompts = [PROMPTS[i % len(PROMPTS)] for i in range(n_requests)]
     t0 = time.perf_counter()
     with ThreadPoolExecutor(max_workers=concurrency) as ex:
@@ -474,7 +477,7 @@ def run_bench(concurrency, n_requests=16):
 results = []
 if ready:
     print("warmup:", one_call(PROMPTS[0]))
-    for conc in [1, 4, 8]:
+    for conc in CONCURRENCY_LEVELS:
         r = run_bench(conc)
         print(r)
         results.append(r)
