@@ -16,6 +16,7 @@
           "model_name": "llama31_8b_bnb4",
           "endpoint": "llama31-8b-bnb4",
           "hf_repo": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
+          "hf_revision": "f15c379fb32bb402fa06a7ae9aecb1febf4b79ec",
           "workload_type": "GPU_LARGE",
           "smoke_test": "true",
           "scale_to_zero": "false"

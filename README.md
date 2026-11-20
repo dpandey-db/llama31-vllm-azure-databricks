@@ -11,7 +11,7 @@ This repo shows two ways to serve a 4-bit (bitsandbytes) Llama 3.1 8B model with
 
 **In Canada Central, use the pyfunc wrapper.** Custom LLM Serving requires the model to be logged from AI Runtime, and it's only available in US regions. GPU Custom Model Serving is supported in Canada Central, and the pyfunc wrapper runs vLLM on it without AI Runtime.
 
-Both notebooks use `unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit`, which is ungated on Hugging Face, so no token is needed. To serve a different Hugging Face model, change the `hf_repo` parameter. If your fine-tuned model is already registered in Unity Catalog, use [the Unity Catalog variant](#starting-from-a-fine-tuned-model-in-unity-catalog) instead.
+Both notebooks use `unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit`, which is ungated on Hugging Face, so no token is needed. The download is pinned to commit `f15c379` (`hf_revision`), the version these notebooks were tested with, so an upstream change to the repo can't change what gets deployed. To serve a different Hugging Face model, change `hf_repo` and set `hf_revision` to a commit hash from that repo. If your fine-tuned model is already registered in Unity Catalog, use [the Unity Catalog variant](#starting-from-a-fine-tuned-model-in-unity-catalog) instead.
 
 ## Option 1 (Canada Central): GPU Custom Model Serving with a pyfunc wrapper
 
@@ -86,7 +86,7 @@ On Azure, Custom LLM Serving offers `GPU_SMALL` (T4), `GPU_LARGE` (A100), and `G
 
 ## Getting started
 
-The notebooks take their settings as parameters (widgets): `catalog`, `schema`, `model_name`, `endpoint`, `workload_type`, and `scale_to_zero`, plus `hf_repo` (or `source_model` and `source_version` in the Unity Catalog variant). You need `CREATE MODEL` on the target schema.
+The notebooks take their settings as parameters (widgets): `catalog`, `schema`, `model_name`, `endpoint`, `workload_type`, and `scale_to_zero`, plus `hf_repo` and `hf_revision` (or `source_model` and `source_version` in the Unity Catalog variant). You need `CREATE MODEL` on the target schema.
 
 1. Import the notebooks into your workspace:
    ```bash

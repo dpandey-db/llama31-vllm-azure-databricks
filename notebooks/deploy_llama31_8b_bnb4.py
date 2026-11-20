@@ -37,7 +37,7 @@
 
 # COMMAND ----------
 
-# MAGIC %pip install -q vllm==0.24.0 transformers==5.8.1 mlflow==3.13.0 openai==2.37.0 hf_transfer==0.1.9 "bitsandbytes>=0.48.1"
+# MAGIC %pip install -q vllm==0.24.0 transformers==5.8.1 mlflow==3.13.0 openai==2.37.0 hf_transfer==0.1.9 "bitsandbytes==0.50.2"
 # MAGIC %pip install -q --force-reinstall --no-deps opencv-python-headless==4.12.0.88
 # MAGIC %restart_python
 
@@ -66,6 +66,7 @@ dbutils.widgets.text("schema", "llm_serving", "UC schema")
 dbutils.widgets.text("model_name", "llama31_8b_bnb4", "UC registered model name")
 dbutils.widgets.text("endpoint", "llama31-8b-bnb4", "Serving endpoint name")
 dbutils.widgets.text("hf_repo", "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit", "HuggingFace repo")
+dbutils.widgets.text("hf_revision", "f15c379fb32bb402fa06a7ae9aecb1febf4b79ec", "HuggingFace commit hash (change together with hf_repo)")
 dbutils.widgets.dropdown("workload_type", "GPU_LARGE", ["GPU_LARGE", "GPU_LARGE_RTX", "GPU_SMALL"], "Serving GPU (A100 / RTX PRO 6000 / T4)")
 dbutils.widgets.dropdown("dtype", "auto", ["auto", "bfloat16", "float16"], "vLLM dtype (auto: fp16 on T4, else bf16)")
 dbutils.widgets.dropdown("smoke_test", "true", ["true", "false"], "Local vLLM smoke test")
@@ -76,6 +77,9 @@ SCHEMA = dbutils.widgets.get("schema")
 MODEL_NAME = dbutils.widgets.get("model_name")
 ENDPOINT_NAME = dbutils.widgets.get("endpoint")
 HF_REPO = dbutils.widgets.get("hf_repo")
+HF_REVISION = dbutils.widgets.get("hf_revision").strip()
+if not HF_REVISION:
+    raise ValueError("Set hf_revision to a commit hash of hf_repo so every run downloads the same files.")
 WORKLOAD_TYPE_STR = dbutils.widgets.get("workload_type")
 SMOKE_TEST = dbutils.widgets.get("smoke_test") == "true"
 SCALE_TO_ZERO = dbutils.widgets.get("scale_to_zero") == "true"
@@ -96,7 +100,7 @@ LOCAL_PORT = 3080                         # serverless GPU notebooks allow ports
 SERVING_PORT = 8080                       # Model Serving requires 8080
 
 print(f"uc_model={UC_MODEL_NAME} | endpoint={ENDPOINT_NAME} | workload={WORKLOAD_TYPE_STR} | dtype={DTYPE}")
-print(f"hf_repo={HF_REPO} | smoke_test={SMOKE_TEST} | scale_to_zero={SCALE_TO_ZERO}")
+print(f"hf_repo={HF_REPO}@{HF_REVISION[:7]} | smoke_test={SMOKE_TEST} | scale_to_zero={SCALE_TO_ZERO}")
 
 # COMMAND ----------
 
@@ -125,7 +129,7 @@ from huggingface_hub import snapshot_download
 
 # Download straight into the artifacts dir (unsloth bnb-4bit is ~5.6 GB, ungated -> no HF token).
 if not os.path.exists(f"{ARTIFACTS_PATH}/config.json"):
-    snapshot_download(repo_id=HF_REPO, local_dir=ARTIFACTS_PATH)
+    snapshot_download(repo_id=HF_REPO, revision=HF_REVISION, local_dir=ARTIFACTS_PATH)
 shutil.rmtree(f"{ARTIFACTS_PATH}/.cache", ignore_errors=True)   # HF download metadata; don't log it
 print("local weights:", sorted(os.listdir(ARTIFACTS_PATH))[:8], "...")
 

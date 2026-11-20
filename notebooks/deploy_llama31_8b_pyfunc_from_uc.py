@@ -43,7 +43,7 @@ dbutils.widgets.text("vllm_version", "0.24.0", "vLLM version installed in the se
 if dbutils.widgets.get("local_vllm") == "true":
     import subprocess, sys
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
-                           f"vllm=={dbutils.widgets.get('vllm_version')}", "bitsandbytes>=0.48.1"])
+                           f"vllm=={dbutils.widgets.get('vllm_version')}", "bitsandbytes==0.50.2"])
     dbutils.library.restartPython()
 
 
@@ -285,7 +285,7 @@ SERVING_REQS = [
     f"cloudpickle=={cloudpickle.__version__}",   # must match the pickler of python_model
     f"requests=={requests.__version__}",
     f"vllm=={VLLM_VERSION}",
-    "bitsandbytes>=0.48.1",
+    "bitsandbytes==0.50.2",               # pinned: the endpoint reinstalls these on every container build
 ]
 
 with mlflow.start_run(run_name=f"deploy_{MODEL_NAME}"):

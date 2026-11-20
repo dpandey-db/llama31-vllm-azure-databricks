@@ -41,7 +41,7 @@ dbutils.widgets.text("vllm_version", "0.24.0", "vLLM version installed in the se
 if dbutils.widgets.get("local_vllm") == "true":
     import subprocess, sys
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
-                           f"vllm=={dbutils.widgets.get('vllm_version')}", "bitsandbytes>=0.48.1"])
+                           f"vllm=={dbutils.widgets.get('vllm_version')}", "bitsandbytes==0.50.2"])
     dbutils.library.restartPython()
 
 # COMMAND ----------
@@ -56,6 +56,7 @@ dbutils.widgets.text("schema", "llm_serving", "UC schema")
 dbutils.widgets.text("model_name", "llama31_8b_bnb4_pyfunc", "UC registered model name")
 dbutils.widgets.text("endpoint", "llama31-8b-bnb4-pyfunc", "Serving endpoint name")
 dbutils.widgets.text("hf_repo", "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit", "HuggingFace repo")
+dbutils.widgets.text("hf_revision", "f15c379fb32bb402fa06a7ae9aecb1febf4b79ec", "HuggingFace commit hash (change together with hf_repo)")
 dbutils.widgets.dropdown("workload_type", "GPU_LARGE", ["GPU_LARGE", "GPU_LARGE_RTX", "GPU_SMALL"], "Serving GPU")
 dbutils.widgets.dropdown("scale_to_zero", "false", ["true", "false"], "Scale-to-zero")
 dbutils.widgets.dropdown("deploy", "true", ["true", "false"], "Create/update the endpoint")
@@ -65,6 +66,9 @@ SCHEMA = dbutils.widgets.get("schema")
 MODEL_NAME = dbutils.widgets.get("model_name")
 ENDPOINT_NAME = dbutils.widgets.get("endpoint")
 HF_REPO = dbutils.widgets.get("hf_repo")
+HF_REVISION = dbutils.widgets.get("hf_revision").strip()
+if not HF_REVISION:
+    raise ValueError("Set hf_revision to a commit hash of hf_repo so every run downloads the same files.")
 WORKLOAD_TYPE_STR = dbutils.widgets.get("workload_type")
 VLLM_VERSION = dbutils.widgets.get("vllm_version")
 SCALE_TO_ZERO = dbutils.widgets.get("scale_to_zero") == "true"
@@ -112,7 +116,7 @@ os.chdir(tempfile.mkdtemp())                         # /Workspace can't hold lar
 from huggingface_hub import snapshot_download
 
 if not os.path.exists(f"{ARTIFACTS_PATH}/config.json"):
-    snapshot_download(repo_id=HF_REPO, local_dir=ARTIFACTS_PATH)
+    snapshot_download(repo_id=HF_REPO, revision=HF_REVISION, local_dir=ARTIFACTS_PATH)
 shutil.rmtree(f"{ARTIFACTS_PATH}/.cache", ignore_errors=True)   # HF download metadata; don't log it
 print("local weights:", sorted(os.listdir(ARTIFACTS_PATH))[:8], "...")
 
@@ -227,7 +231,7 @@ SERVING_REQS = [
     f"cloudpickle=={cloudpickle.__version__}",   # must match the pickler of python_model
     f"requests=={requests.__version__}",
     f"vllm=={VLLM_VERSION}",
-    "bitsandbytes>=0.48.1",
+    "bitsandbytes==0.50.2",               # pinned: the endpoint reinstalls these on every container build
 ]
 
 with mlflow.start_run(run_name=f"deploy_{MODEL_NAME}"):
